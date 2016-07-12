@@ -47,6 +47,21 @@
 
 ;; To activate use `M-x helm-taskswitch'.
 
+;; This will bring up a helm buffer with all the titles of all the open windows.
+;; Selecting one will bring that window to the forground.
+
+;; Frequently I have a lot of windows and browser tabs open. Searching for
+;; these using a visual system is inefficent. Emacs and Helm are an alternative.
+
+;; There are several additions outside of emacs to make this work better.
+;; I use a plugin to google chrome that forces each tab to open a new window
+;; so that helm-taskswitch will have all the browser tabs. It is called
+;; "New Tab, New Window". To get the URL into the title of the tab I use
+;; another chrome plugin "URL in Title".
+;;
+;; I also use a bash prompt sets the title to include the username, host and
+;; directory.
+
 ;; ## Issues / bugs
 
 ;; If you discover an issue or bug in `helm-taskswitch' not already noted:
