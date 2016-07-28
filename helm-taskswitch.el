@@ -1,32 +1,12 @@
 ;;; helm-taskswitch.el --- Use helm to switch windows and buffers
 
-;; Copyright (C) 2016  Brian Caruso <briancaruso@gmail.com>
-
 ;; Author: Brian Caruso <briancaruso@gmail.com>
 ;; Maintainer: Brian Caruso <briancaruso@gmail.com>
 ;; Created: 2016-05-27
 ;; URL: https://github.com/bdc34/helm-taskswitch
-;; Package-Version: 20160527.001
-;; Package-Requires: ((ewmctrl "20150630.138"))
+;; Package-Version: 20160728.001
+;; Package-Requires: ((helm "20160420.259") (ewmctrl "20150630.138"))
 ;; Keywords: desktop, windows
-
-;;
-;; This file is NOT part of GNU Emacs.
-;;
-;; This program is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
-
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;
 
 ;;; Commentary:
 
@@ -41,26 +21,11 @@
 
 ;; ## Installation
 
-;; TODO Install wmctrl, ewmctrl.el, xwd, imagemagic and helm.
+;; TODO Install wmctrl, ewmctrl.el and helm.
 
 ;; ## Usage
 
-;; To activate use `M-x helm-taskswitch'.
-
-;; This will bring up a helm buffer with all the titles of all the open windows.
-;; Selecting one will bring that window to the forground.
-
-;; Frequently I have a lot of windows and browser tabs open. Searching for
-;; these using a visual system is inefficent. Emacs and Helm are an alternative.
-
-;; There are several additions outside of emacs to make this work better.
-;; I use a plugin to google chrome that forces each tab to open a new window
-;; so that helm-taskswitch will have all the browser tabs. It is called
-;; "New Tab, New Window". To get the URL into the title of the tab I use
-;; another chrome plugin "URL in Title".
-;;
-;; I also use a bash prompt sets the title to include the username, host and
-;; directory.
+;; To activate use `M-x helm-task-switcher'.
 
 ;; ## Issues / bugs
 
@@ -155,9 +120,12 @@
 
 (defun helm-taskswitch-close-candidates (c)
   "Closes a candidate window from ewmctrl--list-windows"
-  (mapc (lambda (c) (let ((id (cdr (assoc 'window-id (car c)))))
-         (call-process-shell-command (concat ewmctrl-wmctrl-path " -i -c '" id "'"))))
-       (helm-marked-candidates)))
+  (mapc (lambda (c)
+          (let* ((id (cdr (assoc 'window-id (car c))))
+                 (killcmd (concat ewmctrl-wmctrl-path " -i -c '" id "'")))
+            (message killcmd)
+            (call-process-shell-command killcmd )))
+        (helm-marked-candidates)))
 
 (defun helm-taskswitch-open-preview-jpg (id)
   "Make a preview jpg of a x window in /tmp/id.jpg"
@@ -188,12 +156,13 @@
       '((name . "client windows")
         (candidates . helm-taskswitch-client-candidates)
         (action . (("Forground" . (lambda (c) (ewmctrl--focus-window-by-id (cdr (assoc 'window-id (car c))))))
+                   ("close window" . helm-taskswitch-close-candidates )
                    ("Split top bottom" . (lambda (candidate) (message "Not yet implemented: top-bottom %s" candidate)))
                    ("Split right left" . (lambda (candidate) (message "Not yet implemented: right-left %s" candidate)))
                    ("preview" . (lambda (c) ( helm-taskswitch-open-preview-jpg (cdr (assoc 'window-id (car c))))))
                    ("dump client window s-exp" . prin1 )
-                   ("close window" . close-candidates )))
-       ))
+                   ))
+        ))
 
 ; '(helm-source-buffers-list
 ;   helm-source-recentf
@@ -211,9 +180,27 @@
   (helm :sources '(helm-source-wmctrl-windows
                    helm-source-buffers-list
                    helm-source-recentf 
-                   helm-source-buffer-not-found)))
+                   helm-source-buffer-not-found)
+        :buffer "*helm-taskswitch*"
+        ))
 
 (provide 'helm-taskswitch)
+
+;;
+;; This file is NOT part of GNU Emacs.
+;;
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;; Local Variables:
 ;; coding: utf-8
