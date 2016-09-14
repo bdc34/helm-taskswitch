@@ -92,14 +92,13 @@
         (title   (helm-taskswitch-title al ))) ;(cdr (assoc 'title   al)))))
     (format "%-18s  %s" wmclass title )))
 
-
 (defun helm-taskswitch-title (al)
   (let* ( (title   (cdr (assoc 'title   al)))
           (wmclass (cdr (assoc 'wmclass al))) )
     (cond ((string-equal wmclass "google-chrome.google-chrome" )
            ;; chrome sometimes ends with "- Google Chrome"
            ;; and some pages repeat the URL in the title
-           (s-chop-suffix "- Google Chrome" title))
+           (replace-regexp-in-string "- Google Chrome" "" title))     
           (t title)) ))
 
 (defun helm-taskswitch-wmclass (al)
