@@ -4,7 +4,7 @@
 ;; Maintainer: Brian Caruso <briancaruso@gmail.com>
 ;; Created: 2016-05-27
 ;; URL: https://github.com/bdc34/helm-taskswitch
-;; Package-Version: 20160728.001
+;; Package-Version: 2.0.0
 ;; Package-Requires: ((helm "3.0"))
 ;; Keywords: desktop, windows
 
