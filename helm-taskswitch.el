@@ -1,3 +1,4 @@
+-*- lexical-binding: t; -*-
 ;;; helm-taskswitch.el --- Use helm to switch windows and buffers
 
 ;; Author: Brian Caruso <briancaruso@gmail.com>
@@ -5,7 +6,7 @@
 ;; Created: 2016-05-27
 ;; URL: https://github.com/bdc34/helm-taskswitch
 ;; Package-Version: 2.0.0
-;; Package-Requires: ((helm "3.0"))
+;; Package-Requires: ((emacs "24")(helm "3.0"))
 ;; Keywords: desktop, windows
 
 ;;; Commentary:
@@ -42,14 +43,15 @@
 
 ;; ## TODOs
 
-;; * Track or get with focus history and use it to order candidates. Current
-;;   order is arbitrary.
+;; * Track or get with focus history and use it to order candidates.
+;;  The current order is arbitrary.
 
 ;; Intersting blog post about alt-tab, suggests markov model
 ;; http://www.azarask.in/blog/post/solving-the-alt-tab-problem/
 ;; Ideas from that: other hot key for "go back to most recent window"
 
-;; * Keep emacs filter emacs out of focus history when it is used for switching
+;; * Keep Emacs
+;; Filter Emacs out of focus history when it is used for switching
 
 
 ;; ## License
@@ -58,6 +60,7 @@
 
 ;;; Code:
 
+(require 'helm)
 
 ;; Customisable variables.
 
@@ -68,8 +71,7 @@
 (defcustom helm-taskswitch-wmctrl-path "/usr/bin/wmctrl"
   "Absolute path to wmctrl executable."
   :type '(file :must-match t)
-  :group 'helm-taskswitch
-) 
+  :group 'helm-taskswitch)
 
 (defgroup helm-taskswitch-faces nil
   "Customize the appearance of helm-taskswitch."
@@ -95,11 +97,10 @@
 
 
 (defcustom helm-taskswitch-pre-switch-hook '()
-  "Called before a switch to a client, not called in other helm sources, buffers, etc.
+  "Called before a switch to a client.
 
-Each Function is called with two arguments, 
-First the x window id.
-Second, the candidate window associative list."
+Each Function is called with two arguments, First the x window
+id.  Second, the candidate window associative list."
   :type '(repete function)
   :group 'helm-taskswitch)
 
@@ -126,6 +127,7 @@ Second, the candidate window associative list."
 
 
 (defun helm-taskswitch-wmclass (al)
+  "Gets the WMCLASS for window AL associative list."
   (let ((title   (cdr (assoc 'title   al)))
         (wmclass (cdr (assoc 'wmclass al))))
     (cond ((string-equal wmclass "google-chrome.Google-chrome" )
@@ -176,15 +178,15 @@ Second, the candidate window associative list."
     windows-list))
 
 
-
-(defun helm-taskswitch-focus-window-by-cancidate (c)
-  "Internal function to focus the desktop window specified by ID."
+(defun helm-taskswitch-focus-window-by-cancidate (al)
+  "Internal function to focus the desktop window specified by AL, a window associative list."
   (let ((id (cdr (assoc 'window-id (car c)))))
     (dolist (f helm-taskswitch-pre-switch-hook) (funcall f c))
     (call-process-shell-command (concat helm-taskswitch-wmctrl-path " -i -a '" id "'"))))
-  
+
+
 (defun helm-taskswitch-close-candidates (c)
-  "Closes a candidate window from helm-taskswitch--list-windows"
+  "Closes a candidate C, a window associative list from ‘helm-taskswitch--list-windows’."
   (mapc (lambda (c)
           (let* ((id (cdr (assoc 'window-id (car c))))
                  (killcmd (concat helm-taskswitch-wmctrl-path " -i -c '" id "'")))
@@ -195,7 +197,8 @@ Second, the candidate window associative list."
 
 (defun helm-taskswitch-client-candidates ()
   "Return a list windows with title and wmclass."
-  (mapcar 'helm-taskswitch-format-candidate (helm-taskswitch--list-windows)) )
+  (mapcar 'helm-taskswitch-format-candidate (helm-taskswitch--list-windows)))
+
 
 (setq  helm-source-wmctrl-windows
        (helm-build-sync-source
@@ -209,45 +212,45 @@ Second, the candidate window associative list."
                    ;;("preview" . (lambda (c) ( helm-taskswitch-open-preview-jpg (cdr (assoc 'window-id (car c))))))
                    ("dump client window s-exp" . prin1 ))))
 
+
 ;;;###autoload
 (defun helm-taskswitch ()
-  "Use helm to switch between tasks (X11 windows, buffers or recentf)"
+  "Use helm to switch between tasks (X11 windows, buffers or recentf)."
   (interactive)
   (run-hooks 'helm-taskswitch-open-hooks )
   (select-frame-set-input-focus (window-frame (selected-window)))
 
-
-  
+ 
   (unless helm-source-buffers-list
    (setq helm-source-buffers-list
           (helm-make-source "Buffers" 'helm-source-buffers)))
-
 ;; consider :resume t
-;           :preselect 
+;;          :preselect
   (helm :sources '(helm-source-wmctrl-windows
                    helm-source-buffers-list
-                   helm-source-recentf 
+                   helm-source-recentf
                    helm-source-buffer-not-found)
         :buffer "*helm-taskswitch*"
         ))
 
-(provide 'helm-taskswitch)
+
 
 ;;-------------------------------------------------------------------------
-;; In progress:  of ordering of candidates 
+;; In progress:  of ordering of candidates
 
-;; TODO Need focus history before emacs is focused for taskswitch
-;; get this with a process that runs xprop -root -spy
+;; TODO Need to collect the focus history for focus and window changes that
+;; are not done through Emacs.
+;; Get this with a process that runs xprop -root -spy
 ;; and watches for _NET_ACTIVE_WINDOW
 
-;; TODO sort candidates based history
+;; TODO Sort candidates based history
 ;; Get most recent window before task switch, look at out freqs, order by that,
 ;; then, for all remain windows, order by global in freq
 ;; (let* ((all (get-all-windows))
 ;;        (current (get-current-window))
 ;;        (out-list (get-out-list current))
 ;;        (never-out ( list-subtract all out-list))
-;;        (candidate (append out-list (order-like never-out global-in-freq))))  
+;;        (candidate (append out-list (order-like never-out global-in-freq))))
 ;;   candidate)
 
 ;; ( in-freqs * per-win-out-freqs * current_win_id )
@@ -263,83 +266,58 @@ Second, the candidate window associative list."
 ;;                          current_win_id = new_win_id
 ;;   
 ;;   
-;; TODO avoid recording emacs in history when used as task switcher
-;; Cannot just remove the emacs switch sicne emacs might have been focused
+;; TODO Avoid recording Emacs in history when used as task switcher
+;; Cannot just remove the Emacs switch sicne Emacs might have been focused
 ;; before the call to helm-taskswitch. Maybe check before the call to
 ;; select-frame-set-input-focus?
 ;; something like: if not emacs-focused-p: bring-forward-but-remove-from-history
+;; Or maybe remove the most recent Emacs focus when entering helm-taskswitch?
 
-
-;  First stab at how to do this: 1 in emacs use a
-;; process to run xproc -root -spy to listen for focus change events 2
+;;  First stab at how to do this:
+;;  1 In Emacs use a process to run xproc -root -spy to listen for focus change events
+;;   This part is working. This creates a buffer with a history of focus chang events.
+;;  2 ?
 ;;
 ;; (defun helm-taskswitch--track-history (proc string)
 ;;   ... keep track of focus history ... )
 ;; 
 ;; (make-process :command '('xproc' '-root' '-spy')
 ;;    :connection-type 'pipe'
-;;    :filter helm-taskswitch--track-history) 
+;;    :filter helm-taskswitch--track-history)
 
+;; THIS WORKS FINE BUT NOT HOOKED UP TO ANYTHING YET
+;; (require 's)
 
-(require 's)
+;; (defun to-wids  (string)
+;;   "Find all focus change events in STRING and return a list of the window ids in order."
 
-(defun to-wids  (string)
-  "For a string, find all events that look like a focus change and return
-   a list of the window ids in order"
+;;   ;; interesting events:
+;;   ;; NET_ACTIVE_WINDOW - newly active/focused window
+;;   ;; NET_CLIENT_LIST - all client windows
+;;   (let ((foc-regex  "_NET_ACTIVE_WINDOW(WINDOW): window id # 0x\\([0-9a-f][0-9a-f]+\\)"))
+;;     (mapcar 'cadr (s-match-strings-all foc-regex string))))
 
-  ;; interesting events:
-  ;; NET_ACTIVE_WINDOW - newly active/focused window
-  ;; NET_CLIENT_LIST - all client windows
-  (let ((foc-regex  "_NET_ACTIVE_WINDOW(WINDOW): window id # 0x\\([0-9a-f][0-9a-f]+\\)"))
-    (mapcar 'cadr (s-match-strings-all foc-regex string))))
+;; (defun winid-insertion-filter (proc string)
+;;   "PROC Filter for window IDs from STRING.
+;; Taken from elisp manual 'Process Filter Functions'"
+;;   (when (buffer-live-p (process-buffer proc))
+;;     (with-current-buffer (process-buffer proc)
+;;       (let ((moving (= (point) (process-mark proc)))
+;;             (lines (to-wids string )))
+;;         (save-excursion
+;;           ;; Insert the text, advancing the process marker.
+;;           (goto-char (process-mark proc))
+;;           (mapc (lambda (s) (insert (format "%s\n" s))) lines)
+;;           (set-marker (process-mark proc) (point)))
+;;         (if moving (goto-char (process-mark proc)))))))
 
-;; 
-
-(defun ordinary-insertion-filter (proc string)
-  (when (buffer-live-p (process-buffer proc))
-    (with-current-buffer (process-buffer proc)
-      (let ((moving (= (point) (process-mark proc)))
-            (lines (to-wids string )))
-        (save-excursion
-          ;; Insert the text, advancing the process marker.
-          (goto-char (process-mark proc))
-          (mapc (lambda (s) (insert (format "%s\n" s))) lines)
-          (set-marker (process-mark proc) (point)))
-        (if moving (goto-char (process-mark proc)))))))
-
- (make-process
-  :name "xproc-focus-spy"
-  :buffer "*xproc-focus-spy*"
-  :command '("xprop" "-root" "-spy")
-  :noquery t
-  :filter 'ordinary-insertion-filter
-  )
-
-
-;; (defun helm-taskswitch-open-preview-jpg (id)
-;;   "Make a preview jpg of a x window in /tmp/id.jpg"
-
-;;   ;; This is too slow and buggy.
-  
-;;   ;; Encountering some bug in xwd a lot, it looks like this
-;;   ;;xwd: Getting target window information.
-;;   ;;
-;;   ;;X Error of failed request:  BadMatch (invalid parameter attributes)
-;;   ;;  Major opcode of failed request:  73 (X_GetImage)
-;;   ;;  Serial number of failed request:  255
-;;   ;;  Current serial number in output stream:  255
-
-;;  (let* ((tmp-win-file (concat "/tmp/" id ".jpg"))
-;;         (cmd (concat "/usr/bin/xwd" " -silent -id '" id "' | /usr/bin/convert - " tmp-win-file )))
-;;       (progn
-;;        (message cmd)
-;;        (call-process-shell-command cmd)
-;;        (find-file tmp-win-file))))
-
-;; (defun helm-taskswitch-make-preview-windows (wmctrl-list)
-;;    "Make a directory of preview jpegs"
-;;    (mapcar 'make-preview-jpg wmctrl-list))
-
+;; (make-process
+;;   :name "xproc-focus-spy"
+;;   :buffer "*xproc-focus-spy*"
+;;   :command '("xprop" "-root" "-spy")
+;;   :noquery t
+;;   :filter 'ordinary-insertion-filter
+;;   )
 
 ;;
 ;; This file is NOT part of GNU Emacs.
@@ -362,4 +340,5 @@ Second, the candidate window associative list."
 ;; indent-tabs-mode: nil
 ;; End:
 
+(provide 'helm-taskswitch)
 ;;; helm-taskswitch.el ends here
