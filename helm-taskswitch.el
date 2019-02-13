@@ -1,4 +1,4 @@
--*- lexical-binding: t; -*-
+;;; -*- lexical-binding: t -*-
 ;;; helm-taskswitch.el --- Use helm to switch windows and buffers
 
 ;; Author: Brian Caruso <briancaruso@gmail.com>
@@ -44,15 +44,15 @@
 ;; ## TODOs
 
 ;; * Track or get with focus history and use it to order candidates.
-;;  The current order is arbitrary.
+;; There is a strat on this commented out at the bottom. The current
+;; order is arbitrary.
 
 ;; Intersting blog post about alt-tab, suggests markov model
 ;; http://www.azarask.in/blog/post/solving-the-alt-tab-problem/
 ;; Ideas from that: other hot key for "go back to most recent window"
 
-;; * Keep Emacs
-;; Filter Emacs out of focus history when it is used for switching
-
+;; * Keep Emacs out of focust history
+;; Filter Emacs out of focus history when it is used for switching.
 
 ;; ## License
 
@@ -61,6 +61,7 @@
 ;;; Code:
 
 (require 'helm)
+(require 'helm-for-files)
 
 ;; Customisable variables.
 
