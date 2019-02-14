@@ -179,39 +179,35 @@ id.  Second, the candidate window associative list."
     windows-list))
 
 
-(defun helm-taskswitch-focus-window-by-cancidate (al)
+(defun helm-taskswitch-focus-window-by-candidate (al)
   "Internal function to focus the desktop window specified by AL, a window associative list."
-  (let ((id (cdr (assoc 'window-id (car c)))))
-    (dolist (f helm-taskswitch-pre-switch-hook) (funcall f c))
-    (call-process-shell-command (concat helm-taskswitch-wmctrl-path " -i -a '" id "'"))))
+  (let* ((id (cdr (assoc 'window-id (car al))))
+         (cmd (concat helm-taskswitch-wmctrl-path " -i -a '" id "'")))
+    ;;    (dolist (f helm-taskswitch-pre-switch-hook) (funcall f c))
+    (message cmd)
+    (call-process-shell-command cmd)))
 
 
-(defun helm-taskswitch-close-candidates (c)
-  "Closes a candidate C, a window associative list from ‘helm-taskswitch--list-windows’."
-  (mapc (lambda (c)
-          (let* ((id (cdr (assoc 'window-id (car c))))
-                 (killcmd (concat helm-taskswitch-wmctrl-path " -i -c '" id "'")))
-            (message killcmd)
-            (call-process-shell-command killcmd )))
-        (helm-marked-candidates)))
-
+(defun helm-taskswitch-close-candidate (al)
+  "Closes a candidate AL, a window associative list from ‘helm-taskswitch--list-windows’."
+    (let* ((id (cdr (assoc 'window-id (car al))))
+           (cmd (concat helm-taskswitch-wmctrl-path " -i -c '" id "'")))
+      (message cmd)
+      (call-process-shell-command cmd)))
 
 (defun helm-taskswitch-client-candidates ()
   "Return a list windows with title and wmclass."
   (mapcar 'helm-taskswitch-format-candidate (helm-taskswitch--list-windows)))
 
 
-(setq  helm-source-wmctrl-windows
-       (helm-build-sync-source
-           "client windows sync"
-         :fuzzy-match t
-         :candidates 'helm-taskswitch-client-candidates
-         :action '(("Forground" . helm-taskswitch-focus-window-by-cancidate )
-                   ("close window" . helm-taskswitch-close-candidates )
-                   ("Split top bottom" . (lambda (candidate) (message "Not yet implemented: top-bottom %s" candidate)))
-                   ("Split right left" . (lambda (candidate) (message "Not yet implemented: right-left %s" candidate)))
-                   ;;("preview" . (lambda (c) ( helm-taskswitch-open-preview-jpg (cdr (assoc 'window-id (car c))))))
-                   ("dump client window s-exp" . prin1 ))))
+(setq helm-source-wmctrl-windows
+      (helm-build-sync-source "X Windows2"
+        :fuzzy-match t
+        :candidates 'helm-taskswitch-client-candidates
+        :action '(("Forground" . helm-taskswitch-focus-window-by-candidate )
+                  ("close window" . helm-taskswitch-close-candidate)
+                  ;; TODO get close window working with marked candidates
+                  ("dump client window s-exp" . prin1 ))))
 
 
 ;;;###autoload
@@ -220,19 +216,15 @@ id.  Second, the candidate window associative list."
   (interactive)
   (run-hooks 'helm-taskswitch-open-hooks )
   (select-frame-set-input-focus (window-frame (selected-window)))
-
- 
   (unless helm-source-buffers-list
    (setq helm-source-buffers-list
           (helm-make-source "Buffers" 'helm-source-buffers)))
-;; consider :resume t
-;;          :preselect
   (helm :sources '(helm-source-wmctrl-windows
                    helm-source-buffers-list
                    helm-source-recentf
                    helm-source-buffer-not-found)
         :buffer "*helm-taskswitch*"
-        ))
+        :truncate-lines t))
 
 
 
