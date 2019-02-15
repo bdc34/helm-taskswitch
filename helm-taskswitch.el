@@ -130,7 +130,8 @@
 
   AL is an associative list for a window."
   (let ((title   (cdr (assoc 'title   al))))
-    (funcall helm-taskswitch-title-transform title)))
+    (funcall helm-taskswitch-title-transform
+             (replace-regexp-in-string "- Google Chrome" "" title))))
 
 (defun helm-taskswitch-wmclass (al)
   "Gets the WMCLASS for window AL associative list."
