@@ -44,7 +44,7 @@
 ;; ## TODOs
 
 ;; * Track or get with focus history and use it to order candidates.
-;; There is a strat on this commented out at the bottom. The current
+;; There is a strat on this commented out at the bottom.  The current
 ;; order is arbitrary.
 
 ;; Intersting blog post about alt-tab, suggests markov model
@@ -54,6 +54,12 @@
 ;; * Keep Emacs out of focust history
 ;; Filter Emacs out of focus history when it is used for switching.
 
+;; * Dedup WMCLASS
+;; WMCLASS is often program.Program, transform theses to just Program
+
+;; * Strip WMCLASS from end of title
+;; Title often ends with WMCLASS or something like that.  Try to strip these off.
+
 ;; ## License
 
 ;; [GNU General Public License version 3](http://www.gnu.org/licenses/gpl.html), or (at your option) any later version;; Code from https://github.com/flexibeast/ewmctrl is used under GNU 3.
@@ -61,7 +67,7 @@
 ;;; Code:
 
 (require 'helm)
-(require 'helm-for-files)
+(require 'helm-for-files) ;; needed for helm-source-recentf
 
 ;; Customisable variables.
 
@@ -75,6 +81,15 @@
   :type '(file :must-match t)
   :group 'helm-taskswitch)
 
+(defcustom helm-taskswitch-title-transform 'identity
+  "Transform title of a single client window for display in helm selection."
+  :group 'helm-taskswitch
+  :type '(repeat function))
+
+(defcustom helm-taskswitch-wmclass-width 12
+  "Column with of wmclass field when displayed."
+  :group 'helm-taskswitch
+  :type 'integer)
 
 (defgroup helm-taskswitch-faces nil
   "Customize the appearance of helm-taskswitch."
@@ -105,35 +120,30 @@
   "Formats a candidate client window for task switcher.
 
   AL is the associative list for a window."
-  (cons
-   (format "%-18s  %s" (helm-taskswitch-wmclass al) (helm-taskswitch-title al))
-   (list al)))
+  (let* ((ddfmt (format "%d.%d" helm-taskswitch-wmclass-width helm-taskswitch-wmclass-width))
+         (wmtitlefmt (concat "%-" ddfmt "s %s"))
+         (windowstr (format wmtitlefmt (helm-taskswitch-wmclass al) (helm-taskswitch-title al))))
+    (cons windowstr (list al))))
 
 (defun helm-taskswitch-title (al)
   "Formats the title of a window.
 
   AL is an associative list for a window."
-  (let* ( (title   (cdr (assoc 'title   al)))
-          (wmclass (cdr (assoc 'wmclass al))))
-     ;; redundent
-    (replace-regexp-in-string "- Google Chrome" ""
-                              ;; bad title for cornell's Jira
-                              (replace-regexp-in-string "- Cornell University Library https://culibrary.atlassian.net.*" "Jira Issues" title))))
-
+  (let ((title   (cdr (assoc 'title   al))))
+    (funcall helm-taskswitch-title-transform title)))
 
 (defun helm-taskswitch-wmclass (al)
   "Gets the WMCLASS for window AL associative list."
-  (let ((title   (cdr (assoc 'title   al)))
-        (wmclass (cdr (assoc 'wmclass al))))
+  (let ((wmclass (cdr (assoc 'wmclass al))))
     (cond ((string-equal wmclass "google-chrome.Google-chrome" )
-           (propertize "Google-chrome" 'face 'helm-taskswitch-browser-face ))
+           (propertize "Chrome" 'face 'helm-taskswitch-browser-face ))
           ((string-equal wmclass "terminator.Terminator")
            (propertize "Terminator" 'face 'helm-taskswitch-term-face))
           ((string-equal wmclass "emacs.Emacs")
            (propertize "Emacs" 'face 'helm-taskswitch-emacs-face))
           (t wmclass) )))
 
-(setq helm-taskswitch--wmctrl-field-count 10)
+(defconst helm-taskswitch--wmctrl-field-count 10)
 
 (defun helm-taskswitch--list-windows ()
   "Internal function to get a list of desktop windows via `wmctrl'."
@@ -188,7 +198,7 @@
       (message (concat "helm-taskswitch: closing X client with " cmd))
       (call-process-shell-command cmd)))
 
-(defun helm-taskswitch-close-candidates (al)
+(defun helm-taskswitch-close-candidates ()
   "Closes all selected candidates."
   (mapc 'helm-taskswitch-close-candidate (helm-marked-candidates)))
   
@@ -197,13 +207,14 @@
   (mapcar 'helm-taskswitch-format-candidate (helm-taskswitch--list-windows)))
 
 
-(setq helm-source-wmctrl-windows
+(defvar helm-taskswitch-source-x-windows
       (helm-build-sync-source "X Windows"
         :fuzzy-match t
         :candidates 'helm-taskswitch-client-candidates
         :action '(("Focus window" . helm-taskswitch-focus-window-by-candidate )
                   ("Close window(s)" . helm-taskswitch-close-candidates)
-                  ("dump client window s-exp" . prin1 ))))
+                  ("dump client window s-exp" . prin1 )))
+      "Helm source that provides X windows and actions.")
 
 
 ;;;###autoload
@@ -215,7 +226,7 @@
   (unless helm-source-buffers-list
    (setq helm-source-buffers-list
           (helm-make-source "Buffers" 'helm-source-buffers)))
-  (helm :sources '(helm-source-wmctrl-windows
+  (helm :sources '(helm-taskswitch-source-x-windows
                    helm-source-buffers-list
                    helm-source-recentf
                    helm-source-buffer-not-found)
