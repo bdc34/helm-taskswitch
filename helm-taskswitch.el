@@ -185,9 +185,13 @@
   "Closes a candidate AL, a window associative list from ‘helm-taskswitch--list-windows’."
     (let* ((id (cdr (assoc 'window-id (car al))))
            (cmd (concat helm-taskswitch-wmctrl-path " -i -c '" id "'")))
-      (message cmd)
+      (message (concat "helm-taskswitch: closing X client with " cmd))
       (call-process-shell-command cmd)))
 
+(defun helm-taskswitch-close-candidates (al)
+  "Closes all selected candidates."
+  (mapc 'helm-taskswitch-close-candidate (helm-marked-candidates)))
+  
 (defun helm-taskswitch-client-candidates ()
   "Return a list windows with title and wmclass."
   (mapcar 'helm-taskswitch-format-candidate (helm-taskswitch--list-windows)))
@@ -198,7 +202,7 @@
         :fuzzy-match t
         :candidates 'helm-taskswitch-client-candidates
         :action '(("Forground" . helm-taskswitch-focus-window-by-candidate )
-                  ("close window" . helm-taskswitch-close-candidate)
+                  ("close window" . helm-taskswitch-close-candidates)
                   ;; TODO get close window working with marked candidates
                   ("dump client window s-exp" . prin1 ))))
 
