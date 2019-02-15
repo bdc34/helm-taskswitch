@@ -144,18 +144,19 @@
           (t wmclass) )))
 
 (defconst helm-taskswitch--wmctrl-field-count 10)
+(defconst helm-taskswitch--wmctrl-field-regex
+  (concat "^"
+          (mapconcat 'identity (make-list (1- helm-taskswitch--wmctrl-field-count) "\\(\\S-+\\)\\s-+") "")
+          "\\(.+\\)"))
 
 (defun helm-taskswitch--list-windows ()
   "Internal function to get a list of desktop windows via `wmctrl'."
   (let ((bfr (generate-new-buffer " *helm-taskswitch-wmctrl-output*"))
-        (fields-re (concat "^"
-                           (mapconcat 'identity (make-list (1- helm-taskswitch--wmctrl-field-count) "\\(\\S-+\\)\\s-+") "")
-                           "\\(.+\\)"))
         (windows-list '()))
-    (call-process-shell-command (concat helm-taskswitch-wmctrl-path " -lGxp") nil bfr)
     (with-current-buffer bfr
+      (call-process-shell-command (concat helm-taskswitch-wmctrl-path " -lGxp") nil t)
       (goto-char (point-min))
-      (while (re-search-forward fields-re nil t)
+      (while (re-search-forward helm-taskswitch--wmctrl-field-regex nil t)
         (let ((window-id (match-string 1))
               (desktop-number (match-string 2))
               (pid (match-string 3))
