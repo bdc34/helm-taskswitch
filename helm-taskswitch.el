@@ -67,12 +67,14 @@
 
 (defgroup helm-taskswitch nil
   "Use helm to switch between tasks (X11 windows or buffers)"
+  :prefix "helm-taskswitch-"
   :group 'external)
 
 (defcustom helm-taskswitch-wmctrl-path "/usr/bin/wmctrl"
   "Absolute path to wmctrl executable."
   :type '(file :must-match t)
   :group 'helm-taskswitch)
+
 
 (defgroup helm-taskswitch-faces nil
   "Customize the appearance of helm-taskswitch."
@@ -96,14 +98,6 @@
   "Face used for emacs."
   :group 'helm-taskswitch-faces)
 
-
-(defcustom helm-taskswitch-pre-switch-hook '()
-  "Called before a switch to a client.
-
-Each Function is called with two arguments, First the x window
-id.  Second, the candidate window associative list."
-  :type '(repete function)
-  :group 'helm-taskswitch)
 
 ;; Internal Code
 
@@ -183,7 +177,6 @@ id.  Second, the candidate window associative list."
   "Internal function to focus the desktop window specified by AL, a window associative list."
   (let* ((id (cdr (assoc 'window-id (car al))))
          (cmd (concat helm-taskswitch-wmctrl-path " -i -a '" id "'")))
-    ;;    (dolist (f helm-taskswitch-pre-switch-hook) (funcall f c))
     (message cmd)
     (call-process-shell-command cmd)))
 
