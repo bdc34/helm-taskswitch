@@ -272,38 +272,42 @@
 ;;    :filter helm-taskswitch--track-history)
 
 ;; THIS WORKS FINE BUT NOT HOOKED UP TO ANYTHING YET
-;; (require 's)
+(require 's)
 
-;; (defun to-wids  (string)
-;;   "Find all focus change events in STRING and return a list of the window ids in order."
+(defconst helm-taskswitch--NONROOT-WINDOWID-REGEX
+  "_NET_ACTIVE_WINDOW(WINDOW): window id # \\(0x[0-9a-f][0-9a-f]+\\)")
 
-;;   ;; interesting events:
-;;   ;; NET_ACTIVE_WINDOW - newly active/focused window
-;;   ;; NET_CLIENT_LIST - all client windows
-;;   (let ((foc-regex  "_NET_ACTIVE_WINDOW(WINDOW): window id # 0x\\([0-9a-f][0-9a-f]+\\)"))
-;;     (mapcar 'cadr (s-match-strings-all foc-regex string))))
+(defun helm-taskswitch--to-wids  (string)
+  "Find all focus change events in STRING and return a list of the window ids in order.
+This filters out root window events.
+"
+  ;; interesting events:
+  ;; NET_ACTIVE_WINDOW - newly active/focused window
+  ;; NET_CLIENT_LIST - all client windows
+  ;; NET_CLIENT_LIST_STACKING - all client windows, maybe z order?
+    (mapcar 'cadr (s-match-strings-all helm-taskswitch--NONROOT-WINDOWID-REGEX string)))
 
-;; (defun winid-insertion-filter (proc string)
-;;   "PROC Filter for window IDs from STRING.
-;; Taken from elisp manual 'Process Filter Functions'"
-;;   (when (buffer-live-p (process-buffer proc))
-;;     (with-current-buffer (process-buffer proc)
-;;       (let ((moving (= (point) (process-mark proc)))
-;;             (lines (to-wids string )))
-;;         (save-excursion
-;;           ;; Insert the text, advancing the process marker.
-;;           (goto-char (process-mark proc))
-;;           (mapc (lambda (s) (insert (format "%s\n" s))) lines)
-;;           (set-marker (process-mark proc) (point)))
-;;         (if moving (goto-char (process-mark proc)))))))
+(defun helm-taskswitch--winid-insertion-filter (proc string)
+  "PROC Filter for window IDs from STRING.
+Taken from elisp manual 'Process Filter Functions'"
+  (when (buffer-live-p (process-buffer proc))
+    (with-current-buffer (process-buffer proc)
+      (let ((moving (= (point) (process-mark proc)))
+            (lines (helm-taskswitch--to-wids string )))
+        (save-excursion
+          ;; Insert the text, advancing the process marker.
+          (goto-char (process-mark proc))
+          (mapc (lambda (s) (insert (format "%s\n" s))) lines)
+          (set-marker (process-mark proc) (point)))
+        (if moving (goto-char (process-mark proc)))))))
 
-;; (make-process
-;;   :name "xproc-focus-spy"
-;;   :buffer "*xproc-focus-spy*"
-;;   :command '("xprop" "-root" "-spy")
-;;   :noquery t
-;;   :filter 'ordinary-insertion-filter
-;;   )
+(make-process
+  :name "xproc-focus-spy"
+  :buffer "*xproc-focus-spy*"
+  :command '("xprop" "-root" "-spy")
+  :noquery t
+  :filter 'helm-taskswitch--winid-insertion-filter
+  )
 
 ;;
 ;; This file is NOT part of GNU Emacs.
