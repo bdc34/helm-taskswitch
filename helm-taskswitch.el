@@ -198,8 +198,8 @@
       (message (concat "helm-taskswitch: closing X client with " cmd))
       (call-process-shell-command cmd)))
 
-(defun helm-taskswitch-close-candidates ()
-  "Closes all selected candidates."
+(defun helm-taskswitch-close-candidates (AL)
+  "Closes all selected candidates.  AL is ignored but seems to be needed by helm."
   (mapc 'helm-taskswitch-close-candidate (helm-marked-candidates)))
   
 (defun helm-taskswitch-client-candidates ()
