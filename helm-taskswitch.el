@@ -198,12 +198,11 @@
 
 
 (setq helm-source-wmctrl-windows
-      (helm-build-sync-source "X Windows2"
+      (helm-build-sync-source "X Windows"
         :fuzzy-match t
         :candidates 'helm-taskswitch-client-candidates
-        :action '(("Forground" . helm-taskswitch-focus-window-by-candidate )
-                  ("close window" . helm-taskswitch-close-candidates)
-                  ;; TODO get close window working with marked candidates
+        :action '(("Focus window" . helm-taskswitch-focus-window-by-candidate )
+                  ("Close window(s)" . helm-taskswitch-close-candidates)
                   ("dump client window s-exp" . prin1 ))))
 
 
