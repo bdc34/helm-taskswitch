@@ -1,5 +1,4 @@
-;;; -*- lexical-binding: t -*-
-;;; helm-taskswitch.el --- Use helm to switch windows and buffers
+;;; helm-taskswitch.el --- Use helm to switch windows and buffers -*- lexical-binding: t -*-
 
 ;; Author: Brian Caruso <briancaruso@gmail.com>
 ;; Maintainer: Brian Caruso <briancaruso@gmail.com>
@@ -7,7 +6,23 @@
 ;; URL: https://github.com/bdc34/helm-taskswitch
 ;; Package-Version: 2.0.0
 ;; Package-Requires: ((emacs "24")(helm "3.0"))
-;; Keywords: desktop, windows
+;; Keywords: frames
+
+;; This file is NOT part of GNU Emacs.
+;;
+;; This program is free software: you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation, either version 3 of the License, or
+;; (at your option) any later version.
+
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+
+;; You should have received a copy of the GNU General Public License
+;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
+
 
 ;;; Commentary:
 
@@ -200,7 +215,7 @@
       (message (concat "helm-taskswitch: closing X client with " cmd))
       (call-process-shell-command cmd)))
 
-(defun helm-taskswitch-close-candidates (AL)
+(defun helm-taskswitch-close-candidates (_al)
   "Closes all selected candidates.  AL is ignored but seems to be needed by helm."
   (mapc 'helm-taskswitch-close-candidate (helm-marked-candidates)))
   
@@ -235,21 +250,6 @@
         :buffer "*helm-taskswitch*"
         :truncate-lines t))
 
-;;
-;; This file is NOT part of GNU Emacs.
-;;
-;; This program is free software: you can redistribute it and/or modify
-;; it under the terms of the GNU General Public License as published by
-;; the Free Software Foundation, either version 3 of the License, or
-;; (at your option) any later version.
-
-;; This program is distributed in the hope that it will be useful,
-;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-;; GNU General Public License for more details.
-
-;; You should have received a copy of the GNU General Public License
-;; along with GNU Emacs.  If not, see <http://www.gnu.org/licenses/>.
 
 ;; Local Variables:
 ;; coding: utf-8
