@@ -113,18 +113,17 @@
   :group 'helm-faces)
 
 (defface helm-taskswitch-browser-face
-    '((t (:foreground "green")))
+  '((t (:inherit font-lock-constant-face)))
   "Face used for web browsers."
   :group 'helm-taskswitch-faces)
 
 (defface helm-taskswitch-term-face
-    '((((background dark)) :foreground "RosyBrown")
-      (((background light)) :foreground "SlateGray"))
+  '((t (:inherit font-lock-string-face)))
   "Face used for terminals."
   :group 'helm-taskswitch-faces)
 
 (defface helm-taskswitch-emacs-face
-    '((t (:foreground "Sienna3")))
+  '((t (:inherit font-lock-regexp-grouping-construct)))
   "Face used for emacs."
   :group 'helm-taskswitch-faces)
 
