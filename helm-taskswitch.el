@@ -1,5 +1,4 @@
-;;; -*- lexical-binding: t -*-
-;;; helm-taskswitch.el --- Use helm to switch windows and buffers
+;;; helm-taskswitch.el --- Use helm to switch windows and buffers  -*- lexical-binding: t -*-
 
 ;; Author: Brian Caruso <briancaruso@gmail.com>
 ;; Maintainer: Brian Caruso <briancaruso@gmail.com>
