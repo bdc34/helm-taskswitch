@@ -5,6 +5,8 @@ You know how some times looking for the program or browser tab is like
 rummaging through a drawer of unmatched socks? This is a solution to
 that problem.
 
+![helm-taskswitch screenshot](/screenshot.png)
+
 ## How I use this
 
 ### Hot key to activate helm-taskswitch
