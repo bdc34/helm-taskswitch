@@ -90,7 +90,7 @@
 ;; Customisable variables.
 
 (defgroup helm-taskswitch nil
-  "Use helm to switch between tasks (X11 windows or buffers)"
+  "Use helm to switch between tasks (X11 windows or buffers)."
   :prefix "helm-taskswitch-"
   :group 'external)
 
@@ -110,7 +110,7 @@
   :type 'integer)
 
 (defgroup helm-taskswitch-faces nil
-  "Customize the appearance of helm-taskswitch."
+  "Customize the appearance of `helm-taskswitch`."
   :prefix "helm-"
   :group 'helm-taskswitch
   :group 'helm-faces)
@@ -127,7 +127,7 @@
 
 (defface helm-taskswitch-emacs-face
   '((t (:inherit font-lock-regexp-grouping-construct)))
-  "Face used for emacs."
+  "Face used for Emacs."
   :group 'helm-taskswitch-faces)
 
 
@@ -226,7 +226,6 @@
 (defun helm-taskswitch-client-candidates ()
   "Return a list windows with title and wmclass."
   (mapcar 'helm-taskswitch-format-candidate (helm-taskswitch--list-windows)))
-
 
 (defvar helm-taskswitch-source-x-windows
       (helm-build-sync-source "X Windows"
